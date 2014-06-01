@@ -1,0 +1,9 @@
+{
+  "name": "mirrorJS Application Designer Demo",
+  "main": "index.html",
+  "window": {
+        "toolbar": false,
+		"width": 1100,
+		"height": 520
+    }
+}
