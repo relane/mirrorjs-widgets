@@ -3,12 +3,48 @@
 ## mirrorJS's hierarchical structure
 ![mirrorJS hierarchy structure](img/mirrorjs.png)
 
+---
+
 ## mirrorJS widget's hierarchical structure
 ![widgets hierarchy structure](img/widgets.png)
+
+---
 
 # Code
 ## Sample Local application
 ```javascript
+function main(app, args /* CUSTOM ARGUMENTS */)
+{
+	var myContainer = app.create("container");
+	myContainer.setParent( args["my_cnt"] );
+
+	var myTxt = app.create("textfield", myContainer);
+	myTxt.Text = "This is a Textfield";
+
+	var myButton = app.create("button", myContainer);
+	myButton.Caption = "Caption";
+	myButton.Width = 123;
+	myButton.Height = 22;
+	myButton.on("click", function()
+		{
+			myTxt.Text = "Click!";
+		});
+
+	var myTabber = app.create("tabber", myContainer);
+	var myTab1 = app.create("tab", myTabber);
+	myTab1.Caption = "Tab 1";
+	
+	var myTab2 = app.create("tab", myTabber);
+	myTab2.Caption = "Tab 2";
+
+	var myButton2 = app.create("button", myTab1);
+	myButton2.Caption = "Btn in tab1";
+	myButton2.on("click", function()
+		{
+			/* ... */
+		});
+}
+
 /* mirrorJS.app.local( <UI local connector>( <frontend>, <channel> ), <callback>, <conf> ); */
 var myApp = new mirrorJS.app.local(
 				new mirrorJS.ui.connectors.local( "html" /*, loopback */ ),
@@ -33,6 +69,8 @@ var myApp = new mirrorJS.app.local(
 				});
 ```
 
+---
+
 ## Sample Remote application
 ```javascript
 var conf = {
@@ -47,6 +85,7 @@ var myApp = new mirrorJS.app.remote(
 
 ```
 
+---
 
 ## Sample SockJS Application server
 ```javascript
@@ -57,6 +96,7 @@ var myAppServer = new mirrorJS.servers.SockJS(
                         mirrorJS.servers.readConf(global.__base_path + "mirror.conf", true) );
 ```
 
+---
 
 ## Sample widget
 ```javascript
