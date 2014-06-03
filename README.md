@@ -155,4 +155,5 @@ var myAppServer = new mirrorJS.servers.SockJS(
 
 # Live Demo
 
-MirrorJS Sample Application Designer: http://www.mirrorjs.com/designer/
+http://www.mirrorjs.com/designer/
+
