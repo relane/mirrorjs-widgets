@@ -5,6 +5,11 @@
 
 ---
 
+## mirrorJS's architecture
+![mirrorJS architecture](img/architecture.png)
+
+---
+
 ## mirrorJS widget's hierarchical structure
 ![widgets hierarchy structure](img/widgets.png)
 
