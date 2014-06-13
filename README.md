@@ -110,7 +110,7 @@ var myAppServer = new mirrorJS.servers.SockJS(
     "html": function(ui, handle, parent, args)
         {
             var that = this;
-            mirrorJS.widgets.base.ui.call(this, ui, handle, parent, args);
+
             this.show = function()
             {
                 this.node_cnt$.append(
@@ -123,6 +123,7 @@ var myAppServer = new mirrorJS.servers.SockJS(
                     event.stopPropagation();
                 } );
             };
+
             this.props = {
                 "Caption": function(v)
                     {
@@ -152,8 +153,6 @@ var myAppServer = new mirrorJS.servers.SockJS(
                         }
 						/* , ... */
                 };
-            // Inherit base control
-            mirrorJS.widgets.base.backend.call(this, iApp, handle, parent, args);
         }
 };
 ```
