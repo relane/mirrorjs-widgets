@@ -34,8 +34,6 @@ var mjs_container = {
         {
             var that = this;
 
-            mirrorJS.widgets.base.ui.call(this, ui, handle, parent, args);
-
             this.show = function()
             {
                 this.node$ = this.node_cnt$;
@@ -60,8 +58,6 @@ var mjs_container = {
     "backend": function(iApp, handle, parent, args)
         {
             var that = this;
-
-            mirrorJS.widgets.base.backend.call(this, iApp, handle, parent, args);
 
             // why not a property?
             this.setParent = function(p)

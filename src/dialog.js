@@ -34,8 +34,6 @@ var mjs_dialog = {
         {
             var that = this;
 
-            mirrorJS.widgets.base.ui.call(this, ui, handle, parent, args);
-
             this.drawContainer = function ()
             {
                 $(document.body).append(
@@ -149,9 +147,6 @@ var mjs_dialog = {
                                 }
                         }
                 };
-
-            // Inherit base control
-            mirrorJS.widgets.base.backend.call(this, iApp, handle, parent, args);
 
 
             this.handleEvents = function(ctl, what, obj)

@@ -34,8 +34,6 @@ var mjs_tabber = {
         {
             var that = this;
 
-            mirrorJS.widgets.base.ui.call(this, ui, handle, parent, args);
-
             this.show = function()
             {
                 this.node_cnt$.append(
@@ -61,8 +59,6 @@ var mjs_tabber = {
         {
             var that = this;
 
-            mirrorJS.widgets.base.backend.call(this, iApp, handle, parent, args);
-
             this.isGoodChild = function(ctl)
             {
                 if ( ctl && ctl.type === "tab" )
@@ -85,9 +81,6 @@ var mjs_tab = {
     "html": function(ui, handle, parent, args)
         {
             var that = this;
-
-            mirrorJS.widgets.base.ui.call(this, ui, handle, parent, args);
-
 
             this.create = function()
             {
@@ -160,7 +153,6 @@ var mjs_tab = {
                         }
                 };
 
-            mirrorJS.widgets.base.backend.call(this, iApp, handle, parent, args);
 
             this.isGoodParent = function()
             {

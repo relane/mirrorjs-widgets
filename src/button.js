@@ -34,8 +34,6 @@ var mjs_button = {
         {
             var that = this;
 
-            mirrorJS.widgets.base.ui.call(this, ui, handle, parent, args);
-
             this.show = function()
             {
                 this.node_cnt$.append(
@@ -83,9 +81,6 @@ var mjs_button = {
                                 }
                         }
                 };
-
-            // Inherit base control
-            mirrorJS.widgets.base.backend.call(this, iApp, handle, parent, args);
 
         }
 };

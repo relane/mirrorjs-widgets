@@ -22,7 +22,7 @@
  */
 
 
-var mirrorJS = require("../mirrorjs-0.0.1.min");
+var mirrorJS = require("../mirrorjs-0.0.2.min");
 
 global.__base_path = __dirname + "/";
 
