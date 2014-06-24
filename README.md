@@ -162,6 +162,11 @@ var myAppServer = new mirrorJS.servers.SockJS(
 http://www.mirrorjs.com/designer/
 
 
+# Wiki
+
+[Wiki](https://github.com/relane/mirrorjs-widgets/wiki)
+
+
 # Home
 
 http://www.mirrorjs.com/
