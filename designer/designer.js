@@ -26,18 +26,31 @@
 var workarea = null;
 var curWidgetTypeLabel = null;
 
-var txtPositioningTop, txtPositioningLeft, txtLayoutWidth, txtLayoutHeight, ckPositioning;
+var txtPositioningTop, txtPositioningLeft, txtLayoutWidth, txtLayoutHeight;
 
 // Available widgets
 var widgets = [
-    {name: "Dialog", widget: "dialog", "defaults": {"Title": "myDialog", "Width": 400, "Height": 250}},
-    {name: "Container", widget: "container"},
+    {name: "Dialog", widget: "dialog", "defaults": {"Title": "myDialog", "Width": 600, "Height": 500}},
+    {name: "Container", widget: "container", "defaults": {"Height": 350, "Resizable":{"grid": 5}}},
     {name: "Button", widget: "button", "defaults": {"Caption": "myButton", "Width": 100, "Height": 22}},
     {name: "Label", widget: "label", "defaults": {"Caption": "myLabel", "Width": 60, "Height": 22}},
     {name: "Textfield", widget: "textfield", "defaults": {"Text": "myTextfield", "Width": 100, "Height": 22}},
     {name: "Checkbox", widget: "checkbox", "defaults": {"Caption": "myCheckbox", "Width": 100, "Height": 22}},
-    {name: "Tabber", widget: "tabber"},
-    {name: "Tab", widget: "tab", "defaults": {"Caption": "myTab"}}
+    {name: "Tabber", widget: "tabber", "defaults": {"Height": 350}},
+    {name: "Tab", widget: "tab", "defaults": {"Caption": "myTab"}},
+    {name: "DataGrid", widget: "datagrid", "defaults": {"Height": 200}, "startupParams": {
+	    "Width": 400,
+            "Height": 200,
+	    "dataset": {
+		    "columns": [
+                        { id: "id", name: "ID", field: "id" },
+                        { id: "column1", name: "Column1", field: "column1" },
+                        { id: "column2", name: "Column2", field: "column2" }
+    	            ],
+	    	"data": [{id: 1, column1: "ro1", column2: "test"},{id: 2, column1: "ro2", column2: "foo"},
+                         {id: 3, column1: "ro3", column2: "baz"}]
+	        }
+        }}
     ];
 
 var activeWidget = null;
@@ -54,6 +67,11 @@ function getValidWidgetNameByType(t)
 
 function updateActiveWidget(widget)
 {
+    if ( activeWidget === widget )
+    {
+        return;
+    }
+
     activeWidget = widget;
     curWidgetTypeLabel.Caption = activeWidget.__name__;
 
@@ -67,11 +85,7 @@ function updateActiveWidget(widget)
 
         txtLayoutWidth.Text = activeWidget.Width;
         txtLayoutHeight.Text = activeWidget.Height;
-
-        ckPositioning.Checked = activeWidget.Position == "absolute";
-
     }
-
 
     for(var w in livingWidgets)
     {
@@ -79,6 +93,10 @@ function updateActiveWidget(widget)
     }
 
     activeWidget.Border = "2px dotted blue";
+
+    activeWidget.focus();
+
+    console.log("activeWidget: ", activeWidget.__name__);
 }
 
 
@@ -90,7 +108,7 @@ function addThisWidget(app, widget)
         parentWidget = activeWidget;
     }
 
-    var newWidget = app.create(widget.widget, parentWidget);
+    var newWidget = app.create(widget.widget, parentWidget, widget.startupParams);
 
     if ( newWidget === undefined )
     {
@@ -102,8 +120,15 @@ function addThisWidget(app, widget)
 
     livingWidgets[newWidget.__name__] = newWidget;
 
-    newWidget.Top = 0;
-    newWidget.Left = 0;
+    newWidget.Top = 10;
+    newWidget.Left = 10;
+    newWidget.Position = "absolute";
+
+    // if "Width" is not set: use that of the parent (-30)
+    if ( parentWidget && parentWidget.Width !== undefined && widget.defaults["Width"] === undefined )
+    {
+        newWidget.Width = parentWidget.Width - 30;
+    }
 
     if ( widget.defaults !== undefined )
     {
@@ -112,8 +137,38 @@ function addThisWidget(app, widget)
             newWidget[attr] = widget.defaults[attr];
         }
     }
+
+    // check the size of the child to fit the parent
+    if ( parentWidget && parentWidget.Width > 50 && newWidget.Width + 20 > parentWidget.Width )
+    {
+        newWidget.Width = parentWidget.Width - 30;
+    }
+    if ( parentWidget && parentWidget.Height > 50 && newWidget.Height + 20 > parentWidget.Height )
+    {
+        newWidget.Height = parentWidget.Height - 30;
+    }
+
     newWidget.on("click", function(myself){
             updateActiveWidget(myself);
+        });
+
+    newWidget.on("keydown", function(myself, e){
+            handleKeyboardEvent(e);
+        });
+
+    newWidget.on("widgetResize", function(myself){
+            if ( myself === activeWidget )
+            {
+                // updates Width and Height
+                txtLayoutWidth.Text = myself.Width;
+                txtLayoutHeight.Text = myself.Height;
+            }
+
+            console.log("widgetResize!  --  me: ", myself.__name__);
+        });
+
+    newWidget.on("parentWidgetResize", function(myself, obj){
+            console.log("parentWidgetResize!  --  me: ", myself.__name__, "  --  resized widget: ", obj["parentWidgetInstance"].__name__);
         });
 
     newWidget.on("destroy", function(myself){
@@ -121,8 +176,75 @@ function addThisWidget(app, widget)
             delete livingWidgets[myself.__name__];
             updateActiveWidget(workarea);
         });
+
+    // set the current widget as the active widget
+    // updateActiveWidget( newWidget );
+
+    console.log("widgetCrated: ", newWidget.__name__);
 }
 
+
+function handleKeyboardEvent(e)
+{
+    if ( !activeWidget )
+    {
+        return;
+    }
+
+    if ( e.shiftKey === true )
+    {
+        if ( /* LEFT */ e.keyCode === 37 )
+        {
+            activeWidget.Width = parseInt( activeWidget.Width ) - 5;
+        }
+        else if ( /* UP */ e.keyCode === 38 )
+        {
+            activeWidget.Height = parseInt( activeWidget.Height ) - 5;
+        }
+        else if ( /* RIGHT */ e.keyCode === 39 )
+        {
+            activeWidget.Width = parseInt( activeWidget.Width ) + 5;
+        }
+        else if ( /* DOWN */ e.keyCode === 40 )
+        {
+            activeWidget.Height = parseInt( activeWidget.Height ) + 5;
+        }
+    }
+    else
+    {
+        if ( /* LEFT */ e.keyCode === 37 )
+        {
+            activeWidget.Left = parseInt( activeWidget.Left ) - 5;
+        }
+        else if ( /* UP */ e.keyCode === 38 )
+        {
+            activeWidget.Top = parseInt( activeWidget.Top ) - 5;
+        }
+        else if ( /* RIGHT */ e.keyCode === 39 )
+        {
+            activeWidget.Left = parseInt( activeWidget.Left ) + 5;
+        }
+        else if ( /* DOWN */ e.keyCode === 40 )
+        {
+            activeWidget.Top = parseInt( activeWidget.Top ) + 5;
+        }
+        else if ( /* CANC */ e.keyCode === 46 )
+        {
+            if ( activeWidget !== workarea )
+            {
+                activeWidget.destroy();
+            }
+        }
+    }
+}
+
+if (typeof document !== 'undefined')
+{
+    $(document).ready(function()
+        {
+            $(document).keydown( handleKeyboardEvent );
+        });
+}
 
 function drawWorkarea(app)
 {
@@ -143,6 +265,19 @@ function drawWorkarea(app)
         {
             console.log("You can't close this window!");
         });
+
+    workarea.on("widgetResize", function(myself)
+        {
+            if ( myself === activeWidget )
+            {
+                // updates Width and Height
+                txtLayoutWidth.Text = myself.Width;
+                txtLayoutHeight.Text = myself.Height;
+            }
+
+            console.log("widgetResize!  --  me: ", myself.__name__);
+        });
+
 
     updateActiveWidget( workarea );
 }
@@ -182,32 +317,26 @@ function drawToolwin(app)
 
     var myContainer2 = app.create("container", dialogToolwin);
     myContainer2.Border = "1px solid #CCC";
-    myContainer2.Height = 90;
+    myContainer2.Height = 70;
     myContainer2.Position = "relative";
 
     var lblPositioning = app.create("label", myContainer2);
     lblPositioning.Caption = "Positioning";
 
-    ckPositioning = app.create("checkbox", myContainer2);
-    ckPositioning.Caption = "Absolute";
-    ckPositioning.on("click", function(ctl, obj){
-            activeWidget.Position = obj.Checked ? "absolute" : "relative";
-        });
-
     var lblPositioningTop = app.create("label", myContainer2);
     lblPositioningTop.Caption = "Top";
     lblPositioningTop.Position = "absolute";
-    lblPositioningTop.Top = 40;
+    lblPositioningTop.Top = 20;
 
     var lblPositioningLeft = app.create("label", myContainer2);
     lblPositioningLeft.Caption = "Left";
     lblPositioningLeft.Position = "absolute";
-    lblPositioningLeft.Top = 60;
+    lblPositioningLeft.Top = 40;
 
     txtPositioningTop = app.create("textfield", myContainer2);
     txtPositioningTop.Text = "0";
     txtPositioningTop.Position = "absolute";
-    txtPositioningTop.Top = 40;
+    txtPositioningTop.Top = 20;
     txtPositioningTop.Left = 50;
     txtPositioningTop.on("change", function(ctl){
             activeWidget.Top = ctl.Text;
@@ -216,7 +345,7 @@ function drawToolwin(app)
     txtPositioningLeft = app.create("textfield", myContainer2);
     txtPositioningLeft.Text = "0";
     txtPositioningLeft.Position = "absolute";
-    txtPositioningLeft.Top = 60;
+    txtPositioningLeft.Top = 40;
     txtPositioningLeft.Left = 50;
     txtPositioningLeft.on("change", function(ctl){
             activeWidget.Left = ctl.Text;
@@ -314,8 +443,8 @@ function getTheCode(app)
     var code = "function main(app){\n\n";
     code += '    var workarea = app.create("dialog");\n';
     code += '    workarea.Title = "Workarea";\n';
-    code += '    workarea.Width = 800;\n';
-    code += '    workarea.Height = 500;\n';
+    code += '    workarea.Width = ' + workarea.Width + ';\n';
+    code += '    workarea.Height = ' + workarea.Height + ';\n';
     code += '    workarea.DialogPosition = {at: "center top"};\n\n';
 
     for(var w in livingWidgets)
