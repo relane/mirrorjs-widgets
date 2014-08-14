@@ -34,14 +34,6 @@ var mjs_dialog = {
         {
             var that = this;
 
-            this.drawContainer = function ()
-            {
-                $(document.body).append(
-                    "<div id='" + this.handle + "' class='mirrorJSWidget'></div>"
-                );
-                this.node_cnt$ = $("#" + this.handle);
-            };
-
             this.show = function()
             {
                 this.node_cnt$.dialog(
@@ -49,13 +41,9 @@ var mjs_dialog = {
                         modal: args["Modal"] !== undefined ? args["Modal"] : false
                     });
 
-                // always send the "beforeclose" event
-                // you can deactivate it with "off" [ myDialog.off("beforeclose"); ]
-                this.activateEvent("beforeclose", true);
-
                 this.node_cnt$.bind( "dialogbeforeclose", function(event, _ui)
                     {
-                        ui.events.fire(handle, "beforeclose");
+                        ui.events.fire(handle, "beforeclose", /*obj */ undefined, /* force send */ true);
                         return false;
                     });
 
@@ -64,8 +52,21 @@ var mjs_dialog = {
                     ui.events.fire(handle, "click");
                     event.stopPropagation();
                 } );
+
+                this.node_cnt$.dialog({
+                    resizeStop: function( /* unised */ )
+                        {
+                            ui.events.fire(handle, "resize", {"Width": parseInt(that.node_cnt$.dialog( "option", "width" )), "Height": parseInt(that.node_cnt$.dialog( "option", "height" ))}, /* force send */ true);
+                        }
+                    });
+
+                // inherited by keyboard mixin
+                this.bindKeyboardEvents( this.node_cnt$ );
+
             };
 
+
+            // triggered before the widget is destroyed
             this.beforeDestroy = function()
             {
                 this.node_cnt$.dialog( "destroy" );
@@ -75,11 +76,11 @@ var mjs_dialog = {
             this.props = {
                 "Title": function(v)
                     {
-                        that.node_cnt$.dialog({ title: v });
+                        this.node_cnt$.dialog({ title: v });
                     },
                 "DialogPosition": function(v)
                     {
-                        that.node_cnt$.dialog({ position: v });
+                        this.node_cnt$.dialog({ position: v });
                     }
                 };
 
@@ -92,31 +93,42 @@ var mjs_dialog = {
 
             this.setWidth = function(v)
             {
-                that.node_cnt$.dialog({ width: v });
+                this.node_cnt$.dialog({ width: v });
             };
 
 
             this.setHeight = function(v)
             {
-                that.node_cnt$.dialog({ height: v });
+                this.node_cnt$.dialog({ height: v });
             };
 
 
-            this.handleEvents = function(ctl, what, obj)
+            this.setPosition = function(v)
             {
-                if ( what == "resize" )
-                {
-                    // TODO
-                }
+                /* ... */
             };
+
+
+            this.events = {
+                "resize": function(ctl, obj)
+                    {
+                        // TODO
+                    }
+            };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
+
 
         },
 
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             // Properties
             var _title;
             var _position;
@@ -149,19 +161,23 @@ var mjs_dialog = {
                 };
 
 
-            this.handleEvents = function(ctl, what, obj)
-            {
-                if ( what == "beforeclose" )
-                {
-                    if ( this.events["beforeclose"] === undefined )
+            this.events = {
+                "beforeclose": function(ctl, obj)
                     {
-                        // the custom "beforeclose" has not been implemented!
-                        // defaulting to: destroy dialog
-                        iApp.destroy( handle );
+                        if ( this.getCustomEventHandler("beforeclose") === undefined )
+                        {
+                            // the custom "beforeclose" has not been implemented!
+                            // defaulting to: destroy dialog
+                            this.destroy();
+                        }
+                    },
+                "resize": function(ctl, obj)
+                    {
+                        // updates the status
+                        this.Width = obj["Width"];
+                        this.Height = obj["Height"];
                     }
-                }
             };
-
 
         }
 

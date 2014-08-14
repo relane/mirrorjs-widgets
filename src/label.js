@@ -32,8 +32,6 @@ var mjs_label = {
 
     "html": function(ui, handle, parent, args)
         {
-            var that = this;
-
             this.show = function()
             {
                 this.node_cnt$.append(
@@ -53,7 +51,7 @@ var mjs_label = {
             this.props = {
                 "Caption": function(v)
                     {
-                        that.node$.text( v );
+                        this.node$.text( v );
                     }
                 };
 
@@ -62,8 +60,6 @@ var mjs_label = {
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             // Properties
             var _caption = '';
             this.props =

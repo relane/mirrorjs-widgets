@@ -44,36 +44,40 @@ var mjs_checkbox = {
                 this.node_input$ = $("#cki_" + this.handle, this.node_cnt$);
                 this.node_label$ = $("#cklbl_" + this.handle, this.node_cnt$);
 
-                // always send the "click" event
-                // you can deactivate it with "off" [ myCheckbox.off("click"); ]
-                this.activateEvent("click", true);
-
                 this.node$.click( function(event)
                 {
-                    ui.events.fire(handle, "click", {"Checked": that.node_input$.prop( "checked" ) });
+                    ui.events.fire(handle, "click", {"Checked": that.node_input$.prop( "checked" ) }, /* force send */ true);
                     event.stopPropagation();
                 } );
+
+                // inherited by keyboard mixin
+                this.bindKeyboardEvents( this.node$ );
             };
 
 
             this.props = {
                 "Caption": function(v)
                     {
-                        that.node_label$.text( v );
+                        this.node_label$.text( v );
                     },
                 "Checked": function(v)
                     {
-                        that.node_input$.prop( "checked", v );
+                        this.node_input$.prop( "checked", v );
                     }
                 };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
 
         },
 
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             // Properties
             var _caption = '', _checked = false;
             this.props =
@@ -105,19 +109,18 @@ var mjs_checkbox = {
                 };
 
 
-            this.handleEvents = function(ctl, what, obj)
-            {
-                if ( what == "click" )
-                {
-                    // block the firing of the "update" event
-                    iApp.fireEvents = false;
+            this.events = {
+                "click": function(ctl, obj)
+                    {
+                        // block the firing of the "update" event
+                        iApp.fireEvents = false;
 
-                    // updates the status of Checked
-                    this.Checked = obj["Checked"];
+                        // updates the status of Checked
+                        this.Checked = obj["Checked"];
 
-                    // enable firing of the events
-                    iApp.fireEvents = true;
-                }
+                        // enable firing of the events
+                        iApp.fireEvents = true;
+                    }
             };
 
         }

@@ -32,8 +32,6 @@ var mjs_tabber = {
 
     "html": function(ui, handle, parent, args)
         {
-            var that = this;
-
             this.show = function()
             {
                 this.node_cnt$.append(
@@ -57,8 +55,6 @@ var mjs_tabber = {
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             this.isGoodChild = function(ctl)
             {
                 if ( ctl && ctl.type === "tab" )
@@ -80,8 +76,6 @@ var mjs_tab = {
 
     "html": function(ui, handle, parent, args)
         {
-            var that = this;
-
             this.create = function()
             {
                 parent.tabber.find( ".ui-tabs-nav" ).append( '<li id="tab_li_' + this.handle + '"><a href="#tab_' + this.handle + '"></a></li>' );
@@ -124,7 +118,7 @@ var mjs_tab = {
             this.props = {
                 "Caption": function(v)
                     {
-                        that.tab_li$.find("a").text(v);
+                        this.tab_li$.find("a").text(v);
                     }
                 };
 
@@ -133,8 +127,6 @@ var mjs_tab = {
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             // Properties
             var _caption = '';
             this.props =

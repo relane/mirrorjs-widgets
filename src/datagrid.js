@@ -45,7 +45,23 @@ var mjs_datagrid = {
                     enableCellNavigation: true,
                     enableColumnReorder: false
                   };
-                this.grid = new Slick.Grid("#dt_" + this.handle, args["dataset"]["data"], args["dataset"]["columns"], options);
+
+                this.dataView = new Slick.Data.DataView();
+
+                this.grid = new Slick.Grid("#dt_" + this.handle, this.dataView, args["dataset"]["columns"], options);
+
+                // Make the grid respond to DataView change events.
+                this.dataView.onRowCountChanged.subscribe(function (e, args)
+                    {
+                        that.grid.updateRowCount();
+                        that.grid.render();
+                    });
+
+                this.dataView.onRowsChanged.subscribe(function (e, args)
+                    {
+                        that.grid.invalidateRows(args.rows);
+                        that.grid.render();
+                    });
 
                 this.grid.onClick.subscribe(function (e)
                     {
@@ -54,14 +70,69 @@ var mjs_datagrid = {
                         e.stopPropagation();
                     });
 
+                this.dataView.setItems( args["dataset"]["data"] );
+
+                this.node$.click( function(event)
+                {
+                    ui.events.fire(handle, "click");
+                    event.stopPropagation();
+                } );
+
+                // inherited by keyboard mixin
+                this.bindKeyboardEvents( this.node$ );
+
             };
+
+
+            // triggered after the size (Width or Height) of the widget changed
+            this.afterResize = function()
+            {
+                this.grid.resizeCanvas();
+            };
+
+
+            // triggered before the widget is destroyed
+            this.beforeDestroy = function()
+            {
+                /* TODO */
+            };
+
+
+            this.events = {
+                "__clear": function(ctl, obj)
+                    {
+                        this.dataView.setItems([], "Id");
+                    },
+
+                "__addItem": function(ctl, obj)
+                    {
+                        this.dataView.addItem( obj );
+                        this.dataView.refresh();
+                    }
+            };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
 
         },
 
 
     "backend": function(iApp, handle, parent, args)
         {
-
+            this.dataview = {
+                    "clear": function()
+                        {
+                            iApp.events.fire(handle, "__clear");
+                        },
+                    "addItem": function(row)
+                        {
+                            iApp.events.fire(handle, "__addItem", row);
+                        }
+                };
         }
 
 };

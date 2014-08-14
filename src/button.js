@@ -32,7 +32,6 @@ var mjs_button = {
 
     "html": function(ui, handle, parent, args)
         {
-            var that = this;
 
             this.show = function()
             {
@@ -47,23 +46,31 @@ var mjs_button = {
                     ui.events.fire(handle, "click");
                     event.stopPropagation();
                 } );
+
+                // inherited by keyboard mixin
+                this.bindKeyboardEvents( this.node$ );
             };
 
 
             this.props = {
                 "Caption": function(v)
                     {
-                        that.node$.text( v );
+                        this.node$.text( v );
                     }
                 };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
 
         },
 
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             // Properties
             var _caption = '';
             this.props =

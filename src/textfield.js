@@ -32,8 +32,6 @@ var mjs_textfield = {
 
     "html": function(ui, handle, parent, args)
         {
-            var that = this;
-
             this.show = function()
             {
                 this.multiline = args["MultiLine"] !== undefined ? args["MultiLine"] : false;
@@ -51,13 +49,9 @@ var mjs_textfield = {
 
                 this.node$ = $("#txt_" + this.handle, this.node_cnt$);
 
-                // always send the "change" event
-                // you can deactivate it with "off" [ myTextfield.off("change"); ]
-                this.activateEvent("change", true);
-
                 this.node$.change( function()
                     {
-                        ui.events.fire(handle, "change", {"Text": $(this).val()});
+                        ui.events.fire(handle, "change", {"Text": $(this).val()}, /* force send */ true);
                     } );
 
                 this.node$.click( function(event)
@@ -66,23 +60,32 @@ var mjs_textfield = {
                     event.stopPropagation();
                 } );
 
+                // inherited by keyboard mixin
+                this.bindKeyboardEvents( this.node$ );
+
             };
 
 
             this.props = {
                 "Text": function(v)
                     {
-                        that.node$.val( v );
+                        this.node$.val( v );
                     }
                 };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
+
 
         },
 
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
-
             // Properties
             var _text;
             this.props =
@@ -102,21 +105,19 @@ var mjs_textfield = {
                 };
 
 
-            this.handleEvents = function(ctl, what, obj)
-            {
-                if ( what == "change" )
-                {
-                    // block the firing of the "update" event
-                    iApp.fireEvents = false;
+            this.events = {
+                "change": function(ctl, obj)
+                    {
+                        // block the firing of the "update" event
+                        iApp.fireEvents = false;
 
-                    // updates the status of Text
-                    this.Text = obj["Text"];
+                        // updates the status of Text
+                        this.Text = obj["Text"];
 
-                    // enable firing of the events
-                    iApp.fireEvents = true;
-                }
+                        // enable firing of the events
+                        iApp.fireEvents = true;
+                    }
             };
-
 
         }
 

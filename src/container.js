@@ -47,8 +47,27 @@ var mjs_container = {
             this.props = {
                 "Parent": function(v)
                     {
-                        var node = that.node_cnt$.detach();
+                        var node = this.node_cnt$.detach();
                         $( v ).append( node );
+                    },
+                "Resizable": function(v)
+                    {
+                        if ( v === false )
+                        {
+                            if ( this.node_cnt$.hasClass("ui-resizable") )
+                            {
+                                this.node_cnt$.resizable( "destroy" );
+                            }
+                            return;
+                        }
+
+                        // example {grid: 50}
+                        // add the "stop" event handler
+                        v["stop"] = function()
+                            {
+                                ui.events.fire(handle, "resize", {"Width": parseInt(that.node_cnt$.width()), "Height": parseInt(that.node_cnt$.height())}, /* force send */ true);
+                            };
+                        this.node_cnt$.resizable(v);
                     }
                 };
 
@@ -57,7 +76,32 @@ var mjs_container = {
 
     "backend": function(iApp, handle, parent, args)
         {
-            var that = this;
+            // Properties
+            var _resizable = false;
+            this.props =
+                {
+                    "Resizable":
+                        {
+                            "get": function()
+                                {
+                                    return _resizable;
+                                },
+                            "set": function(nv)
+                                {
+                                    _resizable = nv;
+                                    return nv;
+                                }
+                        }
+                };
+
+            this.events = {
+                "resize": function(ctl, obj)
+                    {
+                        // updates the status
+                        this.Width = obj["Width"];
+                        this.Height = obj["Height"];
+                    }
+            };
 
             // why not a property?
             this.setParent = function(p)
