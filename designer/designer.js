@@ -488,7 +488,7 @@ function main(app, args)
 
 if (typeof module !== 'undefined' && module.exports)
 {
-    var mirrorJS = require( __dirname + "/mirrorjs-0.0.2.min");
+    var mirrorJS = require( __dirname + "/mirror");
     module.exports = function(connection)
         {
 
