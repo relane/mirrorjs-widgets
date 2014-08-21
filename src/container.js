@@ -45,29 +45,35 @@ var mjs_container = {
             };
 
             this.props = {
-                "Parent": function(v)
+                "Parent":
                     {
-                        var node = this.node_cnt$.detach();
-                        $( v ).append( node );
-                    },
-                "Resizable": function(v)
-                    {
-                        if ( v === false )
-                        {
-                            if ( this.node_cnt$.hasClass("ui-resizable") )
+                        "set": function(v)
                             {
-                                this.node_cnt$.resizable( "destroy" );
+                                var node = this.node_cnt$.detach();
+                                $( v ).append( node );
                             }
-                            return;
-                        }
-
-                        // example {grid: 50}
-                        // add the "stop" event handler
-                        v["stop"] = function()
+                    },
+                "Resizable":
+                    {
+                        "set": function(v)
                             {
-                                ui.events.fire(handle, "resize", {"Width": parseInt(that.node_cnt$.width()), "Height": parseInt(that.node_cnt$.height())}, /* force send */ true);
-                            };
-                        this.node_cnt$.resizable(v);
+                                if ( v === false )
+                                {
+                                    if ( this.node_cnt$.hasClass("ui-resizable") )
+                                    {
+                                        this.node_cnt$.resizable( "destroy" );
+                                    }
+                                    return;
+                                }
+
+                                // example {grid: 50}
+                                // add the "stop" event handler
+                                v["stop"] = function()
+                                    {
+                                        ui.events.fire(handle, "resize", {"Width": parseInt(that.node_cnt$.width()), "Height": parseInt(that.node_cnt$.height())}, /* force send */ true);
+                                    };
+                                this.node_cnt$.resizable(v);
+                            }
                     }
                 };
 

@@ -67,9 +67,12 @@ var mjs_textfield = {
 
 
             this.props = {
-                "Text": function(v)
+                "Text":
                     {
-                        this.node$.val( v );
+                        "set": function(v)
+                            {
+                                this.node$.val( v );
+                            }
                     }
                 };
 

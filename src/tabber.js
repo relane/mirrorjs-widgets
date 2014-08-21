@@ -116,9 +116,12 @@ var mjs_tab = {
 
 
             this.props = {
-                "Caption": function(v)
+                "Caption":
                     {
-                        this.tab_li$.find("a").text(v);
+                        "set": function(v)
+                            {
+                                this.tab_li$.find("a").text(v);
+                            }
                     }
                 };
 

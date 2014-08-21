@@ -73,7 +73,7 @@ var mjs_combobox = {
 
             this.__addItem = function(key, value)
             {
-                $('<option value="' + key + '">' + value + '</option>').appendTo(this.node$);
+                $('<option value="' + key + '"></option>').text(value).appendTo(this.node$);
             };
 
 
@@ -118,22 +118,54 @@ var mjs_combobox = {
 
 
             this.props = {
-                "Items": function(v)
-                {
-                    var oldVal = this.node$.get(0).value;
-
-                    this.__clear();
-                    for(var i=0; i< v.length; i++)
+                "Items":
                     {
-                        this.__addItem(v[i]["key"], v[i]["value"]);
-                    }
+                        "set": function(v)
+                            {
+                                var oldVal = this.node$.get(0).value;
 
-                    this.__syncSelected( oldVal );
-                },
-                "Selected": function(v)
-                {
-                    this.node$.get(0).value = v;
-                }
+                                this.__clear();
+                                for(var i=0; i< v.length; i++)
+                                {
+                                    this.__addItem(v[i]["key"], v[i]["value"]);
+                                }
+
+                                this.__syncSelected( oldVal );
+                            }
+                    },
+
+                "Item":
+                    {
+                        "get": function(index)
+                            {
+                                var opt = this.node$.find("option:eq(" + index + ")");
+                                if ( opt.val() === undefined )
+                                {
+                                    return {"key": undefined, "value": undefined};
+                                }
+                                return {"key": opt.val(), "value": opt.text()};
+                            }
+                    },
+
+                "Selected":
+                    {
+                        "get": function()
+                            {
+                                return this.node$.get(0).value;
+                            },
+                        "set": function(v)
+                            {
+                                this.node$.get(0).value = v;
+                            }
+                    },
+
+                "ItemsCount":
+                    {
+                        "get": function()
+                            {
+                                return this.node$.get(0).length;
+                            }
+                    }
             };
 
 
@@ -196,6 +228,26 @@ var mjs_combobox = {
             this.removeItem = function(key)
             {
                 iApp.events.fire(handle, "__removeItem", key);
+            };
+
+
+            /*
+             * Ask the frontend for the number of elements
+             *
+             */
+            this.getItemsCount = function(callback)
+            {
+                iApp.frontend.getProp(handle, "ItemsCount", callback);
+            };
+
+
+            /*
+             * Ask the frontend for the element at index 'index'
+             *
+             */
+            this.getItem = function(index, callback)
+            {
+                iApp.frontend.getProp(handle, "Item", callback, parseInt(index));
             };
 
         }

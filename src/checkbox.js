@@ -56,13 +56,19 @@ var mjs_checkbox = {
 
 
             this.props = {
-                "Caption": function(v)
+                "Caption":
                     {
-                        this.node_label$.text( v );
+                        "set": function(v)
+                            {
+                                this.node_label$.text( v );
+                            }
                     },
-                "Checked": function(v)
+                "Checked":
                     {
-                        this.node_input$.prop( "checked", v );
+                        "set": function(v)
+                            {
+                                this.node_input$.prop( "checked", v );
+                            }
                     }
                 };
 

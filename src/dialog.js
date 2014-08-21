@@ -74,13 +74,19 @@ var mjs_dialog = {
 
 
             this.props = {
-                "Title": function(v)
+                "Title":
                     {
-                        this.node_cnt$.dialog({ title: v });
+                        "set": function(v)
+                            {
+                                this.node_cnt$.dialog({ title: v });
+                            }
                     },
-                "DialogPosition": function(v)
+                "DialogPosition":
                     {
-                        this.node_cnt$.dialog({ position: v });
+                        "set": function(v)
+                            {
+                                this.node_cnt$.dialog({ position: v });
+                            }
                     }
                 };
 

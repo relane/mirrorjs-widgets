@@ -53,9 +53,12 @@ var mjs_button = {
 
 
             this.props = {
-                "Caption": function(v)
+                "Caption":
                     {
-                        this.node$.text( v );
+                        "set": function(v)
+                            {
+                                this.node$.text( v );
+                            }
                     }
                 };
 
