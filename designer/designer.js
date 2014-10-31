@@ -24,9 +24,6 @@
 
 // GLOBALS
 var workarea = null;
-var curWidgetTypeLabel = null;
-
-var txtPositioningTop, txtPositioningLeft, txtLayoutWidth, txtLayoutHeight;
 
 // Available widgets
 var widgets = [
@@ -36,21 +33,37 @@ var widgets = [
     {name: "Label", widget: "label", "defaults": {"Caption": "myLabel", "Width": 60, "Height": 22}},
     {name: "Textfield", widget: "textfield", "defaults": {"Text": "myTextfield", "Width": 100, "Height": 22}},
     {name: "Checkbox", widget: "checkbox", "defaults": {"Caption": "myCheckbox", "Width": 100, "Height": 22}},
+    {name: "Radiobutton", widget: "radiobutton", "defaults": {"Caption": "myRadio", "Width": 100, "Height": 22}},
+    {name: "Combobox", widget: "combobox", "defaults": {"Caption": "myCombobox", "Width": 100, "Height": 22, "Items": [
+            {key: "key1", value: "value1"},
+            {key: "key2", value: "value2"},
+            {key: "key3", value: "value3"},
+        ]}},
+
+    {name: "Listbox", widget: "combobox", "defaults": {"Caption": "myListbox", "Listbox": true, "Width": 100, "Height": 50, "Items": [
+            {key: "key1", value: "value1"},
+            {key: "key2", value: "value2"},
+            {key: "key3", value: "value3"},
+        ]}},
+
     {name: "Tabber", widget: "tabber", "defaults": {"Height": 350}},
     {name: "Tab", widget: "tab", "defaults": {"Caption": "myTab"}},
+    {name: "Accordion", widget: "accordion", "defaults": {"Height": 350}},
+    {name: "Panel", widget: "accordionPanel", "defaults": {"Caption": "myPanel"}},
     {name: "DataGrid", widget: "datagrid", "defaults": {"Height": 200}, "startupParams": {
-	    "Width": 400,
+            "Width": 400,
             "Height": 200,
-	    "dataset": {
-		    "columns": [
-                        { id: "id", name: "ID", field: "id" },
-                        { id: "column1", name: "Column1", field: "column1" },
-                        { id: "column2", name: "Column2", field: "column2" }
-    	            ],
-	    	"data": [{id: 1, column1: "ro1", column2: "test"},{id: 2, column1: "ro2", column2: "foo"},
-                         {id: 3, column1: "ro3", column2: "baz"}]
-	        }
-        }}
+            "dataset": {
+                "columns": [
+                            { id: "id", name: "ID", field: "id" },
+                            { id: "column1", name: "Column1", field: "column1" },
+                            { id: "column2", name: "Column2", field: "column2" }
+                        ],
+                "data": [{id: 1, column1: "ro1", column2: "test"},{id: 2, column1: "ro2", column2: "foo"},
+                             {id: 3, column1: "ro3", column2: "baz"}]
+                }
+        }},
+    {name: "Progressbar", widget: "progressbar", "defaults": {"Width": 150, "Height": 20}}
     ];
 
 var activeWidget = null;
@@ -64,8 +77,9 @@ function getValidWidgetNameByType(t)
     return t + "" + widgetID;
 }
 
+var rowToWidgetInfo = [];
 
-function updateActiveWidget(widget)
+function updateActiveWidget(app, widget)
 {
     if ( activeWidget === widget )
     {
@@ -73,18 +87,48 @@ function updateActiveWidget(widget)
     }
 
     activeWidget = widget;
-    curWidgetTypeLabel.Caption = activeWidget.__name__;
+    app.getWidgetByName("curWidgetTypeLabel").Caption = activeWidget.__name__;
+
+    // update help (info and props)
+    var curWidgetInfo = mirrorJS.widgets.controller.getInfo( activeWidget.type );
+    if ( curWidgetInfo )
+    {
+        app.getWidgetByName("helpWidgetInfo").dataview.updateItem(0, {
+                "name": activeWidget.type,
+                "author": curWidgetInfo["author"],
+                "version": curWidgetInfo["version"]
+            });
+        app.getWidgetByName("helpWidgetInfo").grid.autosizeColumns();
+
+        app.getWidgetByName("helpWidgetProps").dataview.clear();
+        rowToWidgetInfo = [];
+        for(var __prop in curWidgetInfo["properties"])
+        {
+            app.getWidgetByName("helpWidgetProps").dataview.addItem({
+                    "id": __prop,
+                    "prop": __prop,
+                    "type": curWidgetInfo["properties"][__prop]["type"],
+                    "default": curWidgetInfo["properties"][__prop]["default"],
+                    "desc": curWidgetInfo["properties"][__prop]["description"]
+                });
+            rowToWidgetInfo.push( curWidgetInfo["properties"][__prop]["description"] );
+        }
+        app.getWidgetByName("helpWidgetProps").grid.autosizeColumns();
+        app.getWidgetByName("propHelp").Text = rowToWidgetInfo[0];
+        app.getWidgetByName("helpWidgetProps").grid.setSelectedRows([0]);
+    }
 
     if ( widget !== workarea )
     {
         workarea.Border = "";
 
         // updates Top, Left
-        txtPositioningTop.Text = activeWidget.Top;
-        txtPositioningLeft.Text = activeWidget.Left;
 
-        txtLayoutWidth.Text = activeWidget.Width;
-        txtLayoutHeight.Text = activeWidget.Height;
+        app.getWidgetByName("txtPositioningTop").Text = activeWidget.Top;
+        app.getWidgetByName("txtPositioningLeft").Text = activeWidget.Left;
+
+        app.getWidgetByName("txtLayoutWidth").Text = activeWidget.Width;
+        app.getWidgetByName("txtLayoutHeight").Text = activeWidget.Height;
     }
 
     for(var w in livingWidgets)
@@ -117,6 +161,10 @@ function addThisWidget(app, widget)
     }
 
     newWidget.__name__ = getValidWidgetNameByType( widget.widget );
+    if ( widget.startupParams !== undefined )
+    {
+        newWidget.__startupParams = JSON.stringify( widget.startupParams );
+    }
 
     livingWidgets[newWidget.__name__] = newWidget;
 
@@ -149,7 +197,7 @@ function addThisWidget(app, widget)
     }
 
     newWidget.on("click", function(myself){
-            updateActiveWidget(myself);
+            updateActiveWidget(app, myself);
         });
 
     newWidget.on("keydown", function(myself, e){
@@ -160,8 +208,8 @@ function addThisWidget(app, widget)
             if ( myself === activeWidget )
             {
                 // updates Width and Height
-                txtLayoutWidth.Text = myself.Width;
-                txtLayoutHeight.Text = myself.Height;
+                app.getWidgetByName("txtLayoutWidth").Text = myself.Width;
+                app.getWidgetByName("txtLayoutHeight").Text = myself.Height;
             }
 
             console.log("widgetResize!  --  me: ", myself.__name__);
@@ -174,11 +222,8 @@ function addThisWidget(app, widget)
     newWidget.on("destroy", function(myself){
             console.log("Widget destroyed: " + myself.__name__);
             delete livingWidgets[myself.__name__];
-            updateActiveWidget(workarea);
+            updateActiveWidget(app, workarea);
         });
-
-    // set the current widget as the active widget
-    // updateActiveWidget( newWidget );
 
     console.log("widgetCrated: ", newWidget.__name__);
 }
@@ -258,7 +303,7 @@ function drawWorkarea(app)
 
     workarea.on("click", function()
         {
-            updateActiveWidget(workarea);
+            updateActiveWidget(app, workarea);
         });
 
     workarea.on("beforeclose", function()
@@ -271,15 +316,18 @@ function drawWorkarea(app)
             if ( myself === activeWidget )
             {
                 // updates Width and Height
-                txtLayoutWidth.Text = myself.Width;
-                txtLayoutHeight.Text = myself.Height;
+                app.getWidgetByName("txtLayoutWidth").Text = myself.Width;
+                app.getWidgetByName("txtLayoutHeight").Text = myself.Height;
             }
 
             console.log("widgetResize!  --  me: ", myself.__name__);
         });
 
+    workarea.on("keydown", function(myself, e){
+            handleKeyboardEvent(e);
+        });
 
-    updateActiveWidget( workarea );
+    updateActiveWidget(app, workarea);
 }
 
 
@@ -288,7 +336,7 @@ function drawToolwin(app)
     var dialogToolwin = app.create("dialog");
     dialogToolwin.Title = "Tools";
     dialogToolwin.Width = 300;
-    dialogToolwin.Height = 400;
+    dialogToolwin.Height = 630;
     dialogToolwin.DialogPosition = [800, 0]; // {at: "right top"};
 
     dialogToolwin.on("beforeclose", function()
@@ -302,7 +350,8 @@ function drawToolwin(app)
     var curWidgetLabel = app.create("label", myContainer);
     curWidgetLabel.Caption = "Active Widget:";
 
-    curWidgetTypeLabel = app.create("label", myContainer);
+    var curWidgetTypeLabel = app.create("label", myContainer);
+    curWidgetTypeLabel.Name = "curWidgetTypeLabel";
 
     var destroyCurWidget = app.create("button", myContainer);
     destroyCurWidget.Caption = "Destroy";
@@ -333,7 +382,8 @@ function drawToolwin(app)
     lblPositioningLeft.Position = "absolute";
     lblPositioningLeft.Top = 40;
 
-    txtPositioningTop = app.create("textfield", myContainer2);
+    var txtPositioningTop = app.create("textfield", myContainer2);
+    txtPositioningTop.Name = "txtPositioningTop";
     txtPositioningTop.Text = "0";
     txtPositioningTop.Position = "absolute";
     txtPositioningTop.Top = 20;
@@ -342,7 +392,8 @@ function drawToolwin(app)
             activeWidget.Top = ctl.Text;
         });
 
-    txtPositioningLeft = app.create("textfield", myContainer2);
+    var txtPositioningLeft = app.create("textfield", myContainer2);
+    txtPositioningLeft.Name = "txtPositioningLeft";
     txtPositioningLeft.Text = "0";
     txtPositioningLeft.Position = "absolute";
     txtPositioningLeft.Top = 40;
@@ -370,7 +421,8 @@ function drawToolwin(app)
     lblLayoutHeight.Position = "absolute";
     lblLayoutHeight.Top = 40;
 
-    txtLayoutWidth = app.create("textfield", myContainer3);
+    var txtLayoutWidth = app.create("textfield", myContainer3);
+    txtLayoutWidth.Name = "txtLayoutWidth";
     txtLayoutWidth.Text = "";
     txtLayoutWidth.Position = "absolute";
     txtLayoutWidth.Top = 20;
@@ -379,7 +431,8 @@ function drawToolwin(app)
             activeWidget.Width = ctl.Text;
         });
 
-    txtLayoutHeight = app.create("textfield", myContainer3);
+    var txtLayoutHeight = app.create("textfield", myContainer3);
+    txtLayoutHeight.Name = "txtLayoutHeight";
     txtLayoutHeight.Text = "";
     txtLayoutHeight.Position = "absolute";
     txtLayoutHeight.Top = 40;
@@ -388,6 +441,48 @@ function drawToolwin(app)
             activeWidget.Height = ctl.Text;
         });
 
+
+    var helpWidgetInfo = app.create("datagrid", dialogToolwin, {
+        "Width": 260,
+        "Height": 60,
+        "dataset":{
+            "columns":[
+                {"id":"name","name":"Widget","field":"name"},
+                {"id":"author","name":"Author","field":"author"},
+                {"id":"version","name":"Version","field":"version"}
+            ],
+            "data":[
+                {"id": 0, "name": "", "author": "", "version": ""}
+            ]
+        }});
+    helpWidgetInfo.Name = "helpWidgetInfo";
+    helpWidgetInfo.Width = 260;
+    helpWidgetInfo.Height = 60;
+
+    var helpWidgetProps = app.create("datagrid", dialogToolwin, {
+        "Width": 260,
+        "Height": 130,
+        "dataset":{
+            "columns":[
+                {"id":"prop","name":"Property","field":"prop","width": 100},
+                {"id":"type","name":"Type","field":"type","width": 60},
+                {"id":"default","name":"Default","field":"default","width": 100}
+            ],
+            "data":[]
+        }});
+    helpWidgetProps.Name = "helpWidgetProps";
+    helpWidgetProps.Width = 260;
+    helpWidgetProps.Height = 130;
+    helpWidgetProps.on("cellClick", function (ctl, cell)
+	    {
+                app.getWidgetByName("propHelp").Text = rowToWidgetInfo[cell.row];
+	    });
+
+    var propHelp = app.create("textfield", dialogToolwin, {"MultiLine": true});
+    propHelp.Name = "propHelp";
+    propHelp.Text = "";
+    propHelp.Width = 260;
+    propHelp.Height = 70;
 
     var getTheCodeButton = app.create("button", dialogToolwin);
     getTheCodeButton.Caption = "Get The Code";
@@ -403,7 +498,7 @@ function drawWidgetsDialog(app)
     var widgetsDialog = app.create("dialog");
     widgetsDialog.Title = "Widgets";
     widgetsDialog.Width = 165;
-    widgetsDialog.Height = 300;
+    widgetsDialog.Height = 500;
     widgetsDialog.DialogPosition = [0, 0];
 
     widgetsDialog.on("beforeclose", function()
@@ -459,7 +554,11 @@ function getTheCode(app)
             }
 
             // console.log("__state__ ", __state__);
-            code += '    var ' + w + ' = app.create("' + livingWidgets[w].type + '", ' + parentName + ');\n';
+            code += '    var ' + w + ' = app.create("' +
+            livingWidgets[w].type + '", ' +
+            parentName +
+            (livingWidgets[w].__startupParams !== undefined ? ', ' + livingWidgets[w].__startupParams : '') +
+            ');\n';
 
             for (var attr in __state__.s)
             {

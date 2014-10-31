@@ -27,7 +27,7 @@ function main(app)
     button1.Left = 225;
     button1.Position = "absolute";
     button1.Caption = "Clear";
-    button1.Width = 100;
+    button1.Width = 110;
     button1.Height = 22;
     button1.Border = "";
     button1.on("click", function(){
@@ -39,7 +39,7 @@ function main(app)
     button2.Left = 225;
     button2.Position = "absolute";
     button2.Caption = "Add Item";
-    button2.Width = 100;
+    button2.Width = 110;
     button2.Height = 22;
     button2.Border = "";
     button2.on("click", function(){
@@ -58,7 +58,7 @@ function main(app)
     button3.Left = 225;
     button3.Position = "absolute";
     button3.Caption = "Remove Item";
-    button3.Width = 100;
+    button3.Width = 110;
     button3.Height = 22;
     button3.Border = "";
     button3.on("click", function(){
@@ -70,7 +70,7 @@ function main(app)
     button4.Left = 225;
     button4.Position = "absolute";
     button4.Caption = "Get Item";
-    button4.Width = 100;
+    button4.Width = 110;
     button4.Height = 22;
     button4.Border = "";
     button4.on("click", function(){
