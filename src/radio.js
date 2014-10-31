@@ -27,7 +27,7 @@ var mirrorJS = mirrorJSRequire("mirrorJS");
 
 mirrorJS.widgets.controller.install({
 
-    "name": "checkbox",
+    "name": "radiobutton",
 
     "author": "mirrorjs",
     "version": "0.0.1",
@@ -39,12 +39,12 @@ mirrorJS.widgets.controller.install({
             this.show = function()
             {
                 this.node_cnt$.append(
-                    '<span id="ck_' + this.handle + '"><input id="cki_' + this.handle + '" type="checkbox" /><label id="cklbl_' + this.handle + '" for="cki_' + this.handle + '"></label></span>'
+                    '<span id="rd_' + this.handle + '"><input id="rdi_' + this.handle + '" type="radio" /><label id="rdlbl_' + this.handle + '" for="rdi_' + this.handle + '"></label></span>'
                 );
 
-                this.node$ = $("#ck_" + this.handle, this.node_cnt$);
-                this.node_input$ = $("#cki_" + this.handle, this.node_cnt$);
-                this.node_label$ = $("#cklbl_" + this.handle, this.node_cnt$);
+                this.node$ = $("#rd_" + this.handle, this.node_cnt$);
+                this.node_input$ = $("#rdi_" + this.handle, this.node_cnt$);
+                this.node_label$ = $("#rdlbl_" + this.handle, this.node_cnt$);
 
                 this.node$.click( function(event)
                     {
@@ -71,6 +71,13 @@ mirrorJS.widgets.controller.install({
                             {
                                 this.node_input$.prop( "checked", v );
                             }
+                    },
+                "GroupName":
+                    {
+                        "set": function(v)
+                            {
+                                this.node_input$.prop( "name", v );
+                            }
                     }
                 };
 
@@ -95,6 +102,11 @@ mirrorJS.widgets.controller.install({
                         {
                             "default": "",
                             "description": "The text content of the control."
+                        },
+                    "GroupName":
+                        {
+                            "default": "",
+                            "description": 'The name of the group that the radio button belongs to. The default is an empty string ("").'
                         },
                     "Checked":
                         {

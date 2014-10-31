@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_button = {
+mirrorJS.widgets.controller.install({
 
     "name": "button",
 
+    "author": "mirrorjs",
+    "version": "0.0.1",
 
     "html": function(ui, handle, parent, args)
         {
@@ -42,10 +44,10 @@ var mjs_button = {
                 this.node$ = $("#btn_" + this.handle, this.node_cnt$);
 
                 this.node$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
 
                 // inherited by keyboard mixin
                 this.bindKeyboardEvents( this.node$ );
@@ -64,7 +66,8 @@ var mjs_button = {
 
 
             // inherit keyboard mixin
-            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
                     ui.events.fire(handle, eventName, params);
                     event.stopPropagation();
                 });
@@ -75,24 +78,14 @@ var mjs_button = {
     "backend": function(iApp, handle, parent, args)
         {
             // Properties
-            var _caption = '';
             this.props =
                 {
                     "Caption":
                         {
-                            "get": function()
-                                {
-                                    return _caption;
-                                },
-                            "set": function(nv)
-                                {
-                                    _caption = nv;
-                                    return nv;
-                                }
+                            "default": "",
+                            "description": "The text caption displayed in the Button control."
                         }
                 };
 
         }
-};
-
-mirrorJS.widgets.controller.install(mjs_button);
+});

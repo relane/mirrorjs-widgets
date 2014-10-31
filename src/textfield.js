@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_textfield = {
+mirrorJS.widgets.controller.install({
 
     "name": "textfield",
 
+    "author": "mirrorjs",
+    "version": "0.0.1",
 
     "html": function(ui, handle, parent, args)
         {
@@ -55,10 +57,10 @@ var mjs_textfield = {
                     } );
 
                 this.node$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
 
                 // inherited by keyboard mixin
                 this.bindKeyboardEvents( this.node$ );
@@ -69,30 +71,60 @@ var mjs_textfield = {
             this.props = {
                 "Text":
                     {
+                        "get": function()
+                            {
+                                return this.node$.val();
+                            },
                         "set": function(v)
                             {
                                 this.node$.val( v );
+                            }
+                    },
+                "ReadOnly":
+                    {
+                        "set": function(v)
+                            {
+                                this.node$.attr( "readonly", v );
+                            }
+                    },
+                "SelectionStart":
+                    {
+                        "set": function(v)
+                            {
+                                this.node$.get(0).selectionStart=v;
+                            }
+                    },
+                "SelectionEnd":
+                    {
+                        "set": function(v)
+                            {
+                                this.node$.get(0).selectionEnd=v;
                             }
                     }
                 };
 
 
             // inherit keyboard mixin
-            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
                     ui.events.fire(handle, eventName, params);
                     event.stopPropagation();
                 });
-
-
         },
 
 
     "backend": function(iApp, handle, parent, args)
         {
             // Properties
-            var _text;
+            var _text = "";
             this.props =
                 {
+                    "ReadOnly":
+                        {
+                            "default": false,
+                            "type": "boolean",
+                            "description": "true if the contents of the textfield control cannot be changed; otherwise, false. The default value is false."
+                        },
                     "Text":
                         {
                             "get": function()
@@ -103,7 +135,21 @@ var mjs_textfield = {
                                 {
                                     _text = nv;
                                     return nv;
-                                }
+                                },
+                            "description": 'The text displayed in the textfield control. The default is an empty string ("").'
+
+                        },
+                    "SelectionStart":
+                        {
+                            "default": 0,
+                            "type": "int",
+                            "description": "The value specifies the index of the first selected character."
+                        },
+                    "SelectionEnd":
+                        {
+                            "default": 0,
+                            "type": "int",
+                            "description": "The value specifies the index of the character after the selection. If this value is equal to the value of the selectionStart property, no text is selected, but the value indicates the position of the caret (cursor) within the textbox."
                         }
                 };
 
@@ -111,19 +157,22 @@ var mjs_textfield = {
             this.events = {
                 "change": function(ctl, obj)
                     {
-                        // block the firing of the "update" event
-                        iApp.fireEvents = false;
-
-                        // updates the status of Text
-                        this.Text = obj["Text"];
-
-                        // enable firing of the events
-                        iApp.fireEvents = true;
+                        // updates the (internal) status of Text
+                        _text = obj["Text"];
                     }
+            };
+
+
+            /*
+             * Ask the frontend for the text (sometimes, for example in keyboard events, you can't use widget.Text)
+             * The Text property is updated _only_ when the "change" event is triggered.
+             *
+             */
+            this.getText = function(callback)
+            {
+                iApp.frontend.getProp(handle, "Text", callback);
             };
 
         }
 
-};
-
-mirrorJS.widgets.controller.install(mjs_textfield);
+});

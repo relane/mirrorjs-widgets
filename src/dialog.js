@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_dialog = {
+mirrorJS.widgets.controller.install({
 
     "name": "dialog",
 
+    "author": "mirrorjs",
+    "version": "0.0.1",
 
     "html": function(ui, handle, parent, args)
         {
@@ -48,10 +50,10 @@ var mjs_dialog = {
                     });
 
                 this.node_cnt$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
 
                 this.node_cnt$.dialog({
                     resizeStop: function( /* unised */ )
@@ -124,7 +126,8 @@ var mjs_dialog = {
 
 
             // inherit keyboard mixin
-            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
                     ui.events.fire(handle, eventName, params);
                     event.stopPropagation();
                 });
@@ -136,33 +139,17 @@ var mjs_dialog = {
     "backend": function(iApp, handle, parent, args)
         {
             // Properties
-            var _title;
-            var _position;
             this.props =
                 {
                     "Title":
                         {
-                            "get": function()
-                                {
-                                    return _title;
-                                },
-                            "set": function(nv)
-                                {
-                                    _title = nv;
-                                    return nv;
-                                }
+                            "default": "",
+                            "description": "Specifies the title of the dialog. If the value is null, the title attribute on the dialog source element will be used."
                         },
                     "DialogPosition":
                         {
-                            "get": function()
-                                {
-                                    return _position;
-                                },
-                            "set": function(nv)
-                                {
-                                    _position = nv;
-                                    return nv;
-                                }
+                            "default": { my: "center", at: "center", of: window },
+                            "description": "Specifies where the dialog should be displayed when opened. The dialog will handle collisions such that as much of the dialog is visible as possible."
                         }
                 };
 
@@ -187,6 +174,4 @@ var mjs_dialog = {
 
         }
 
-};
-
-mirrorJS.widgets.controller.install(mjs_dialog);
+});

@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_label = {
+mirrorJS.widgets.controller.install({
 
     "name": "label",
 
+    "author": "mirrorjs",
+    "version": "0.0.1",
 
     "html": function(ui, handle, parent, args)
         {
@@ -41,10 +43,10 @@ var mjs_label = {
                 this.node$ = $("#lbl_" + this.handle, this.node_cnt$);
 
                 this.node$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
             };
 
 
@@ -64,24 +66,14 @@ var mjs_label = {
     "backend": function(iApp, handle, parent, args)
         {
             // Properties
-            var _caption = '';
             this.props =
                 {
                     "Caption":
                         {
-                            "get": function()
-                                {
-                                    return _caption;
-                                },
-                            "set": function(nv)
-                                {
-                                    _caption = nv;
-                                    return nv;
-                                }
+                            "default": "",
+                            "description": "The text content of the control."
                         }
                 };
 
         }
-};
-
-mirrorJS.widgets.controller.install(mjs_label);
+});

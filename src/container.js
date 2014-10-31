@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_container = {
+mirrorJS.widgets.controller.install({
 
     "name": "container",
 
+    "author": "mirrorjs",
+    "version": "0.0.1",
 
     "html": function(ui, handle, parent, args)
         {
@@ -38,11 +40,12 @@ var mjs_container = {
             {
                 this.node$ = this.node_cnt$;
                 this.node_cnt$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
             };
+
 
             this.props = {
                 "Parent":
@@ -83,20 +86,12 @@ var mjs_container = {
     "backend": function(iApp, handle, parent, args)
         {
             // Properties
-            var _resizable = false;
             this.props =
                 {
                     "Resizable":
                         {
-                            "get": function()
-                                {
-                                    return _resizable;
-                                },
-                            "set": function(nv)
-                                {
-                                    _resizable = nv;
-                                    return nv;
-                                }
+                            "default": false,
+                            "type": "boolean"
                         }
                 };
 
@@ -116,6 +111,4 @@ var mjs_container = {
             };
 
         }
-};
-
-mirrorJS.widgets.controller.install(mjs_container);
+});

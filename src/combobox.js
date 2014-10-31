@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_combobox = {
+mirrorJS.widgets.controller.install({
 
     "name": "combobox",
 
+    "author": "mirrorjs",
+    "version": "0.0.1",
 
     "html": function(ui, handle, parent, args)
         {
@@ -44,21 +46,21 @@ var mjs_combobox = {
                 this.node$ = $("#select_" + this.handle, this.node_cnt$);
 
                 this.node$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
 
                 this.node$.change( function(event)
-                {
-                    var index = that.node$.get(0).selectedIndex;
-                    var key = undefined;
-                    if ( index >= 0 )
                     {
-                        key = that.node$.get(0).options[index].value;
-                    }
-                    ui.events.fire(handle, "change", key, /* force send */ true);
-                } );
+                        var index = that.node$.get(0).selectedIndex;
+                        var key = undefined;
+                        if ( index >= 0 )
+                        {
+                            key = that.node$.get(0).options[index].value;
+                        }
+                        ui.events.fire(handle, "change", key, /* force send */ true);
+                    } );
 
                 // inherited by keyboard mixin
                 this.bindKeyboardEvents( this.node$ );
@@ -118,6 +120,20 @@ var mjs_combobox = {
 
 
             this.props = {
+                "Listbox":
+                    {
+                        "set": function(v)
+                            {
+                                if ( v === true )
+                                {
+                                    this.node$.attr("size", 4);
+                                }
+                                else
+                                {
+                                    this.node$.attr("size", 1);
+                                }
+                            }
+                    },
                 "Items":
                     {
                         "set": function(v)
@@ -170,7 +186,8 @@ var mjs_combobox = {
 
 
             // inherit keyboard mixin
-            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
                     ui.events.fire(handle, eventName, params);
                     event.stopPropagation();
                 });
@@ -182,12 +199,19 @@ var mjs_combobox = {
         {
 
             // Properties
-            var _selected;
+            var _selected = "";
             this.props =
             {
+                "Listbox":
+                {
+                    "default": false,
+                    "type": "boolean",
+                    "description": "Whether the widget represents a combobox or a listbox."
+                },
                 "Items":
                 {
-                    "default": ""
+                    "default": [],
+                    "description": 'An array that represents the items within the combobox in the form: [{key: "key", value: "value"}, ...]. The default is an empty array.'
                 },
                 "Selected":
                 {
@@ -199,7 +223,8 @@ var mjs_combobox = {
                     {
                         _selected = nv;
                         return nv;
-                    }
+                    },
+                    "description": 'The key of the selected item in the control. The default is an empty string ("").'
                 }
             };
 
@@ -251,6 +276,4 @@ var mjs_combobox = {
             };
 
         }
-};
-
-mirrorJS.widgets.controller.install(mjs_combobox);
+});

@@ -21,34 +21,58 @@
  *
  */
 
+/**
+ * Properties:
+ *     Value [int || boolean] (default: false)
+ *     Max [int] (default: 100)
+ *
+ *  Events:
+ *     progressbarcreate
+ *     progressbarcomplete
+ *     click
+ *
+ * See more:
+ *    http://api.jqueryui.com/progressbar/
+ *
+ */
 
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
 mirrorJS.widgets.controller.install({
 
-    "name": "checkbox",
+    "name": "progressbar",
 
     "author": "mirrorjs",
     "version": "0.0.1",
 
+
     "html": function(ui, handle, parent, args)
         {
-            var that = this;
 
             this.show = function()
             {
                 this.node_cnt$.append(
-                    '<span id="ck_' + this.handle + '"><input id="cki_' + this.handle + '" type="checkbox" /><label id="cklbl_' + this.handle + '" for="cki_' + this.handle + '"></label></span>'
+                    '<div id="pb_' + this.handle + '"></div>'
                 );
 
-                this.node$ = $("#ck_" + this.handle, this.node_cnt$);
-                this.node_input$ = $("#cki_" + this.handle, this.node_cnt$);
-                this.node_label$ = $("#cklbl_" + this.handle, this.node_cnt$);
+                this.node$ = $("#pb_" + this.handle, this.node_cnt$);
+
+                this.node$.progressbar( {value: false} );
+
+                this.node$.on( "progressbarcreate", function()
+                    {
+                        ui.events.fire(handle, "progressbarcreate");
+                    } );
+
+                this.node$.on( "progressbarcomplete", function()
+                    {
+                        ui.events.fire(handle, "progressbarcomplete");
+                    } );
 
                 this.node$.click( function(event)
                     {
-                        ui.events.fire(handle, "click", {"Checked": that.node_input$.prop( "checked" ) }, /* force send */ true);
+                        ui.events.fire(handle, "click");
                         event.stopPropagation();
                     } );
 
@@ -57,20 +81,21 @@ mirrorJS.widgets.controller.install({
             };
 
 
+            // triggered before the widget is destroyed
+            this.beforeDestroy = function()
+            {
+                this.node$.progressbar( "destroy" );
+            };
+
+
             this.props = {
-                "Caption":
+                "Value": function(v)
                     {
-                        "set": function(v)
-                            {
-                                this.node_label$.text( v );
-                            }
+                        this.node$.progressbar( "option", "value", v );
                     },
-                "Checked":
+                "Max": function(v)
                     {
-                        "set": function(v)
-                            {
-                                this.node_input$.prop( "checked", v );
-                            }
+                        this.node$.progressbar( "option", "max", v );
                     }
                 };
 
@@ -88,38 +113,19 @@ mirrorJS.widgets.controller.install({
     "backend": function(iApp, handle, parent, args)
         {
             // Properties
-            var _checked = false;
             this.props =
                 {
-                    "Caption":
+                    "Value":
                         {
-                            "default": "",
-                            "description": "The text content of the control."
+                            "default": false,
+                            "description": "The value of the progressbar."
                         },
-                    "Checked":
+                    "Max":
                         {
-                            "type": "boolean",
-                            "get": function()
-                                {
-                                    return _checked;
-                                },
-                            "set": function(nv)
-                                {
-                                    _checked = nv;
-                                    return nv;
-                                },
-                            "description": "true to indicate a checked state; otherwise, false. The default is false."
+                            "default": 100,
+                            "type": "int",
+                            "description": "The maximum value of the progressbar."
                         }
                 };
-
-
-            this.events = {
-                "click": function(ctl, obj)
-                    {
-                        // updates the (internal) status of Checked
-                        _checked = obj["Checked"];
-                    }
-            };
-
         }
 });

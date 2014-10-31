@@ -25,10 +25,12 @@
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
-var mjs_datagrid = {
+mirrorJS.widgets.controller.install({
 
     "name": "datagrid",
 
+    "author": "mirrorjs",
+    "version": "0.0.2",
 
     "html": function(ui, handle, parent, args)
         {
@@ -49,6 +51,9 @@ var mjs_datagrid = {
                 this.dataView = new Slick.Data.DataView();
 
                 this.grid = new Slick.Grid("#dt_" + this.handle, this.dataView, args["dataset"]["columns"], options);
+
+                // mirrorJSRequires: "widgets/SlickGrid/plugins/slick.rowselectionmodel.js"
+                this.grid.setSelectionModel( new Slick.RowSelectionModel() );
 
                 // Make the grid respond to DataView change events.
                 this.dataView.onRowCountChanged.subscribe(function (e, args)
@@ -73,10 +78,10 @@ var mjs_datagrid = {
                 this.dataView.setItems( args["dataset"]["data"] );
 
                 this.node$.click( function(event)
-                {
-                    ui.events.fire(handle, "click");
-                    event.stopPropagation();
-                } );
+                    {
+                        ui.events.fire(handle, "click");
+                        event.stopPropagation();
+                    } );
 
                 // inherited by keyboard mixin
                 this.bindKeyboardEvents( this.node$ );
@@ -99,21 +104,55 @@ var mjs_datagrid = {
 
 
             this.events = {
+
+                // https://github.com/mleibman/SlickGrid/wiki/DataView
+
                 "__clear": function(ctl, obj)
                     {
-                        this.dataView.setItems([], "Id");
+                        this.dataView.setItems([]);
                     },
 
                 "__addItem": function(ctl, obj)
                     {
                         this.dataView.addItem( obj );
-                        this.dataView.refresh();
+                    },
+
+                "__deleteItem": function(ctl, itemID)
+                    {
+                        this.dataView.deleteItem( itemID );
+                    },
+
+                "__updateItem": function(ctl, obj)
+                    {
+                        var itemID = obj["i"];
+                        var cells = obj["c"];
+                        // Update an existing item.
+                        var item = this.dataView.getItemById( itemID );
+                        if ( item !== undefined )
+                        {
+                            for(var cell in cells)
+                            {
+                                item[cell] = cells[cell];
+                            }
+                            this.dataView.updateItem(itemID, item);
+                        }
+                    },
+
+                "__autosizeColumns": function(ctl, obj)
+                    {
+                        this.grid.autosizeColumns();
+                    },
+
+                "__setSelectedRows": function(ctl, rows)
+                    {
+                        this.grid.setSelectedRows(rows);
                     }
             };
 
 
             // inherit keyboard mixin
-            this.loadMixin("keyboard", function(eventName, originalEvent, params) {
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
                     ui.events.fire(handle, eventName, params);
                     event.stopPropagation();
                 });
@@ -131,10 +170,28 @@ var mjs_datagrid = {
                     "addItem": function(row)
                         {
                             iApp.events.fire(handle, "__addItem", row);
+                        },
+                    "deleteItem": function(itemID)
+                        {
+                            iApp.events.fire(handle, "__deleteItem", itemID);
+                        },
+                    "updateItem": function(itemID, cells)
+                        {
+                            iApp.events.fire(handle, "__updateItem", {"i": itemID, "c": cells});
+                        }
+                };
+
+            this.grid = {
+                    "autosizeColumns": function()
+                        {
+                            iApp.events.fire(handle, "__autosizeColumns");
+                        },
+
+                    "setSelectedRows": function(rows)
+                        {
+                            iApp.events.fire(handle, "__setSelectedRows", rows);
                         }
                 };
         }
 
-};
-
-mirrorJS.widgets.controller.install(mjs_datagrid);
+});

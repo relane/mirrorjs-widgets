@@ -21,41 +21,74 @@
  *
  */
 
+/**
+ * Properties:
+ *     Value [int || boolean] (default: false)
+ *     Max [int] (default: 100)
+ *
+ *  Events:
+ *     progressbarcreate
+ *     progressbarcomplete
+ *     click
+ *
+ * See more:
+ *    http://api.jqueryui.com/progressbar/
+ *
+ */
 
 var mirrorJS = mirrorJSRequire("mirrorJS");
 
 
 mirrorJS.widgets.controller.install({
 
-    "name": "tabber",
+    "name": "accordion",
 
     "author": "mirrorjs",
     "version": "0.0.1",
 
+
     "html": function(ui, handle, parent, args)
         {
+
             this.show = function()
             {
                 this.node_cnt$.append(
-                    '<div id="tabber_' + this.handle + '" class="mirrorTabber"><ul></ul></div>'
+                    '<div id="a_' + this.handle + '"></div>'
                 );
 
-                this.node$ = $("#tabber_" + this.handle, this.node_cnt$);
+                this.node$ = $("#a_" + this.handle, this.node_cnt$);
 
-                this.tabber = this.node$.tabs({ collapsible: false });
+                this.accordion = this.node$.accordion({ collapsible: true, heightStyle: "fill" });
+
+                this.node$.on( "accordionactivate", function()
+                    {
+                        ui.events.fire(handle, "accordionactivate");
+                    } );
 
                 this.node$.click( function(event)
                     {
                         ui.events.fire(handle, "click");
                         event.stopPropagation();
                     } );
+
+                // inherited by keyboard mixin
+                this.bindKeyboardEvents( this.node$ );
             };
 
 
+            // triggered before the widget is destroyed
             this.beforeDestroy = function()
             {
-                this.tabber.tabs( "destroy" );
+                this.accordion.accordion( "destroy" );
             };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
 
         },
 
@@ -64,41 +97,39 @@ mirrorJS.widgets.controller.install({
         {
             this.isGoodChild = function(ctl)
             {
-                if ( ctl && ctl.type === "tab" )
+                if ( ctl && ctl.type === "accordionPanel" )
                 {
-                    // tabber can only accept tabs
+                    // accordion can only accept accordionPanel
                     return true;
                 }
                 return false;
             };
-
         }
 });
 
 
 mirrorJS.widgets.controller.install({
 
-    "name": "tab",
+    "name": "accordionPanel",
 
     "author": "mirrorjs",
     "version": "0.0.1",
 
+
     "html": function(ui, handle, parent, args)
         {
+
             this.create = function()
             {
-                parent.tabber.find( ".ui-tabs-nav" ).append( '<li id="tab_li_' + this.handle + '"><a href="#tab_' + this.handle + '"></a></li>' );
-                parent.tabber.append( '<div id="tab_' + this.handle + '"></div>' );
-                parent.tabber.tabs( "refresh" );
-                this.node_cnt$ = $("#tab_" + this.handle);
-                this.tab_li$ = $("#tab_li_" + this.handle);
+                parent.accordion.append( '<h3 id="ap_title_' + this.handle + '"> Panel </h3><div id="ap_' + this.handle + '"></div>' );
+                this.node$ = this.node_cnt$ = $("#ap_" + this.handle);
+                this.apTitle$ = $("#ap_title_" + this.handle);
 
-                if( parent.tabber.tabs( "option", "active" ) === false )
-                {
-                    parent.tabber.tabs( "option", "active", 0 );
-                }
+                this.node$.css("position", "relative");
 
-                this.tab_li$.click( function(event)
+                parent.accordion.accordion( "refresh" );
+
+                this.node_cnt$.click( function(event)
                     {
                         ui.events.fire(handle, "click");
                         event.stopPropagation();
@@ -106,21 +137,46 @@ mirrorJS.widgets.controller.install({
             };
 
 
+            // triggered before the widget is destroyed
             this.beforeDestroy = function()
             {
-                this.tab_li$.remove();
+                this.node_cnt$.remove();
+                this.apTitle$.remove();
             };
 
 
             this.afterDestroy = function()
             {
-                parent.tabber.tabs( "refresh" );
+                parent.accordion.accordion( "refresh" );
+            };
+
+            this.setPosition = function(v)
+            {
+                /* nothing */
             };
 
 
-            this.setBorder = function(v)
+            this.setTop = function(v)
             {
-                this.tab_li$.css( "border", v );
+                /* nothing */
+            };
+
+
+            this.setLeft = function(v)
+            {
+                /* nothing */
+            };
+
+
+            this.setWidth = function(v)
+            {
+                /* nothing */
+            };
+
+
+            this.setHeight = function(v)
+            {
+                /* nothing */
             };
 
 
@@ -129,10 +185,19 @@ mirrorJS.widgets.controller.install({
                     {
                         "set": function(v)
                             {
-                                this.tab_li$.find("a").text(v);
+                                this.apTitle$.text( v );
+                                parent.accordion.accordion( "refresh" );
                             }
                     }
                 };
+
+
+            // inherit keyboard mixin
+            this.loadMixin("keyboard", function(eventName, originalEvent, params)
+                {
+                    ui.events.fire(handle, eventName, params);
+                    event.stopPropagation();
+                });
 
         },
 
@@ -152,13 +217,12 @@ mirrorJS.widgets.controller.install({
 
             this.isGoodParent = function()
             {
-                if ( parent && parent.type === "tabber" )
+                if ( parent && parent.type === "accordion" )
                 {
-                    // tabber can only accept tabs
+                    // accordion can only accept accordionPanel
                     return true;
                 }
                 return false;
             };
-
         }
 });
